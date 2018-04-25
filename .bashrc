@@ -117,8 +117,16 @@ export -f gplace
 if [[ -S "$SSH_AUTH_SOCK" && ! -h "$SSH_AUTH_SOCK" ]]; then
   ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock;
 fi
+
 export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock;
 alias amend='git add $@ && git commit --amend --no-edit && git push -f'
 
 export CLICOLOR=1
-cd ~
+
+if [ -f ~/dotfiles/.git-completion.bash ]; then
+  . ~/.git-completion.bash
+fi
+
+if [ -f ~/dotfiles/.git-prompt.sh ]; then
+  . ~/dotfiles/.git-prompt.sh
+fi
