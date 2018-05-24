@@ -11,7 +11,6 @@ shopt -s histappend
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
-
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
@@ -49,8 +48,9 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\[\033[34m\]\h\[\033[00m\] \[\033[00m\]\w`[[ $(git status 2> /dev/null | tail -n1) != "nothing to commit (working directory clean)" ]] && echo "\[\e[31m\]" || echo "\[\e[32m\]"`$(__git_ps1 " (%s)") \[\033[34m\]\$ \[\033[00m\]'
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[00m\]\W`[[ $(git status 2> /dev/null | tail -n1) != "nothing to commit (working directory clean)" ]] && echo "\[\e[31m\]" || echo "\[\e[32m\]"`$(__git_ps1 " (%s)") \[\033[34m\]\$ \[\033[00m\]'
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
@@ -103,30 +103,61 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 
-export LC_ALL="en_US.UTF-8"
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 export DEBFULLNAME="Egor Kopylov"
-export LC_ALL=en_US.utf8
 
-function gplace {
-  git grep $1 | awk -F ':' '{print $1}' | tee /dev/tty | xargs sed -i "s/$1/$2/g"
+function forever {
+  i=0;
+  short_times=20;
+  long_times=40;
+
+  while true; do
+    sleep=0;
+
+
+    if [ $i -lt $short_times ]; then
+      sleep=0;
+    elif [ $i -ge $short_times -a $i -lt $long_times ]; then
+      sleep=1;
+    else
+      sleep=10;
+    fi
+
+    i=$((i + 1))
+
+    ssh -t $1 -A "tmux -2 attach";
+
+    if [ $? -eq 0 ]; then
+      i=0
+      sleep=0
+    fi
+
+    sleep $sleep;
+  done
 }
-
-export -f gplace
 
 # fix for working ssh agent forwarding in screen
 if [[ -S "$SSH_AUTH_SOCK" && ! -h "$SSH_AUTH_SOCK" ]]; then
   ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock;
 fi
 
-export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock;
 alias amend='git add $@ && git commit --amend --no-edit && git push -f'
 
 export CLICOLOR=1
 
-if [ -f ~/dotfiles/.git-completion.bash ]; then
-  . ~/.git-completion.bash
-fi
+function g {
+  grep -R --color=always $1 ${2:-.} | less -RN
+}
+
+function gplace {
+  git grep $1 | awk -F ':' '{print $1}' | sort | uniq | tee /dev/tty | xargs sed -i'' "s/$1/$2/g"
+}
 
 if [ -f ~/dotfiles/.git-prompt.sh ]; then
-  . ~/dotfiles/.git-prompt.sh
+  source ~/dotfiles/.git-prompt.sh
+fi
+
+if [ -f ~/dotfiles/.git-completion.bash ]; then
+  source ~/dotfiles/.git-completion.bash
 fi
