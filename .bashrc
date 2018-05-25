@@ -126,7 +126,7 @@ function forever {
 
     i=$((i + 1))
 
-    ssh -t $1 -A "tmux -2 attach";
+    ssh -t $1 -A $2;
 
     if [ $? -eq 0 ]; then
       i=0
