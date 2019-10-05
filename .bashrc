@@ -161,3 +161,10 @@ fi
 if [ -f ~/dotfiles/.git-completion.bash ]; then
   source ~/dotfiles/.git-completion.bash
 fi
+[[ $TMUX = "" ]] && export TERM="screen"
+
+export FZF_DEFAULT_OPTS="--preview '(bat --style=numbers --color=always {} || cat {}) 2> /dev/null' --preview-window bottom:80%"
+export FZF_DEFAULT_COMMAND='
+  (git ls-tree -r --name-only HEAD ||
+   find . -path "*/\.*" -prune -o -type f -print -o -type l -print |
+      sed s/^..//) 2> /dev/null'
